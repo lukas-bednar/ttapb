@@ -3,7 +3,12 @@
 
 ## how to use
 
-to test on docker, use the following, separating the column content with *;*
+```
+pip install ttapb
+ttapb URL|FILE
+```
+
+to test on docker, use the following
 
 ```
 docker run --rm -it karmab/ttapb URL|FILE
