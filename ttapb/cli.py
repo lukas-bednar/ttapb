@@ -56,12 +56,12 @@ def process(args):
             kind = d['kind']
             kind = kind[0].lower() + kind[1:]
             kind = re.sub('([A-Z])', "_\g<1>", kind).lower()
-            kkinds = [o for o in k8s_objects if o.endswith(kind)]
-            okinds = [o for o in openshift_objects if o.endswith(kind)]
-            if okinds:
-                kind = okinds[0]
-            elif kkinds:
+            kkinds = [o for o in reversed(k8s_objects) if o.endswith(kind)]
+            okinds = [o for o in reversed(openshift_objects) if o.endswith(kind)]
+            if kkinds:
                 kind = kkinds[0]
+            elif okinds:
+                kind = okinds[0]
             else:
                 continue
             provision.write("- name: Creating %s %s\n" % (kind, name))
