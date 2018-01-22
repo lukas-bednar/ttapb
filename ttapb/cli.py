@@ -54,7 +54,9 @@ def cli():
     # parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('--version', action='version', version=__version__)
     parser.add_argument('inputfile', help='Input template file')
-
+    if len(sys.argv) == 1:
+        parser.print_help()
+        os._exit(0)
     args = parser.parse_args()
     process(args)
 
