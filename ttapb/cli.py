@@ -8,7 +8,7 @@ import urllib
 import yaml
 from objects import k8s_objects, openshift_objects
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 
 def pprint(text, color=None):
@@ -65,11 +65,9 @@ def process(args):
                 resource = okinds[0]
             else:
                 continue
-            # provision.write("- name: Creating %s %s\n" % (kind, name))
-            # provision.write("  %s:\n    state: present\n" % (resource))
             if not os.path.exists("templates"):
                 os.mkdir("templates")
-            src = "templates/%s_%s.yml" % (kind, name)
+            src = "templates/%s_%s.yml.j2" % (kind, name)
             with open(src, 'w') as s:
                 s.write(yaml.dump(d, default_flow_style=False, encoding='utf-8', allow_unicode=True))
             provision.write("- name: Creating %s %s\n  %s:\n    name: %s\n    namespace: \"{{ namespace}}\"\n    state: present\n    src: %s\n" % (kind, name, resource, name, src))
