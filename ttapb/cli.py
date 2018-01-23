@@ -30,7 +30,7 @@ def process(args):
             pprint("Url %s not found.Leaving..." % inputfile, 'red')
         inputfile = 'ttapb.yml'
     elif not os.path.exists(inputfile):
-        pprint("Inputfile %s not found.Leaving..." % sys.argv[0], 'red')
+        pprint("Inputfile %s not found.Leaving..." % sys.argv[1], 'red')
         os._exit(1)
     else:
         pprint("Processing %s..." % inputfile, 'green')
