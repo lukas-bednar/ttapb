@@ -35,7 +35,8 @@ def process(args):
     else:
         pprint("Processing %s..." % inputfile, 'green')
     provision = open('provision.yml', 'w')
-    unprovision = open('unprovision.yml', 'w')
+    deprovision = open('deprovision.yml', 'w')
+    deprovisionlist = []
     with open(inputfile, 'r') as input:
         try:
             data = yaml.load_all(input)
@@ -43,7 +44,7 @@ def process(args):
             pprint("Couldnt parse inputfile.Leaving...", 'red')
             os._exit(1)
         provision.write("---\n")
-        unprovision.write("---\n")
+        deprovision.write("---\n")
         for d in data:
             if 'kind' not in d:
                 continue
@@ -54,22 +55,31 @@ def process(args):
                 continue
             name = d['metadata']['name']
             kind = d['kind']
-            kind = kind[0].lower() + kind[1:]
-            kind = re.sub('([A-Z])', "_\g<1>", kind).lower()
-            kkinds = [o for o in reversed(k8s_objects) if o.endswith(kind)]
-            okinds = [o for o in reversed(openshift_objects) if o.endswith(kind)]
+            resource = kind[0].lower() + kind[1:]
+            resource = re.sub('([A-Z])', "_\g<1>", resource).lower()
+            kkinds = [o for o in reversed(k8s_objects) if o.endswith(resource)]
+            okinds = [o for o in reversed(openshift_objects) if o.endswith(resource)]
             if kkinds:
-                kind = kkinds[0]
+                resource = kkinds[0]
             elif okinds:
-                kind = okinds[0]
+                resource = okinds[0]
             else:
                 continue
-            provision.write("- name: Creating %s %s\n" % (kind, name))
-            provision.write("  %s:\n" % (kind))
+            # provision.write("- name: Creating %s %s\n" % (kind, name))
+            # provision.write("  %s:\n    state: present\n" % (resource))
+            if not os.path.exists("templates"):
+                os.mkdir("templates")
+            src = "templates/%s_%s.yml" % (kind, name)
+            with open(src, 'w') as s:
+                s.write(yaml.dump(d, default_flow_style=False, encoding='utf-8', allow_unicode=True))
+            provision.write("- name: Creating %s %s\n  %s:\n    name: %s\n    namespace: \"{{ namespace}}\"\n    state: present\n    src: %s\n" % (kind, name, resource, name, src))
             # print(yaml.dump(d, default_flow_style=False, encoding='utf-8', allow_unicode=True))
             # print "   -name: execute %s\n    command: %s" % (command, command)
+            deprovisionlist.append("- name: Deleting %s %s\n  %s:\n    name: %s\n    namespace: \"{{ namespace}}\"\n    state: absent\n" % (kind, name, resource, name))
+    for p in reversed(deprovisionlist):
+            deprovision.write(p)
     provision.close()
-    unprovision.close()
+    deprovision.close()
     os._exit(0)
 
 

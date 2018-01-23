@@ -1,3 +1,4 @@
 provision.yml
-unprovision.yml
+deprovision.yml
 *pyc
+templates
