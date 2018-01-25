@@ -80,8 +80,12 @@ def process(args):
                 s.write(yaml.dump(d, default_flow_style=False, encoding='utf-8', allow_unicode=True))
             if render:
                 provision.write("- name: Rendering %s %s\n  template: \n    src: %s\n    dest: %s\n\n" % (kind, name, src, dest))
-            provision.write("- name: Creating %s %s\n  %s:\n    name: %s\n    namespace: \"{{ namespace}}\"\n    state: present\n    src: %s\n\n" % (kind, name, resource, name, k8src))
-            deprovisionlist.append("- name: Deleting %s %s\n  %s:\n    name: %s\n    namespace: \"{{ namespace}}\"\n    state: absent\n\n" % (kind, name, resource, name))
+            if 'cluster' in resource:
+                namespace = ''
+            else:
+                namespace = '    namespace: \"{{ namespace}}\"\n'
+            provision.write("- name: Creating %s %s\n  %s:\n    name: %s\n%s    state: present\n    src: %s\n\n" % (kind, name, resource, name, namespace, k8src))
+            deprovisionlist.append("- name: Deleting %s %s\n  %s:\n    name: %s\n%s    state: absent\n\n" % (kind, name, resource, name, namespace))
     for p in reversed(deprovisionlist):
             deprovision.write(p)
     provision.close()
