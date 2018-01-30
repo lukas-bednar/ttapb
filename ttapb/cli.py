@@ -3,10 +3,9 @@
 import argparse
 import os
 import re
-import sys
 import urllib
 import yaml
-from objects import k8s_objects, openshift_objects
+from ttapb.objects import k8s_objects, openshift_objects
 
 __version__ = '0.3'
 
@@ -22,7 +21,7 @@ def pprint(text, color=None):
 
 def process(args):
     """Process """
-    inputfile = args.inputfile
+    inputfile = args.inputfile[0]
     render = args.render
     if inputfile.startswith('http'):
         pprint("Downloading %s..." % inputfile, 'green')
@@ -77,7 +76,7 @@ def process(args):
                 dest = "%s_%s.yml" % (kind, name)
                 k8src = "\"{{ role_path }}/files/%s_%s.yml\"" % (kind, name)
             with open("templates/%s" % src, 'w') as s:
-                s.write(yaml.dump(d, default_flow_style=False, encoding='utf-8', allow_unicode=True))
+                yaml.dump(d, stream=s, default_flow_style=False, encoding='utf-8', allow_unicode=True, explicit_start=True)
             if render:
                 provision.write("- name: Rendering %s %s\n  template: \n    src: %s\n    dest: %s\n\n" % (kind, name, src, dest))
             if 'cluster' in resource:
@@ -94,14 +93,10 @@ def process(args):
 
 
 def cli():
-    global config
     parser = argparse.ArgumentParser(description='Convert a template in apb')
     parser.add_argument('-r', '--render', action='store_true', help='Create intermediate jinja files')
     parser.add_argument('--version', action='version', version=__version__)
-    parser.add_argument('inputfile', help='Input template file')
-    if len(sys.argv) == 1:
-        parser.print_help()
-        os._exit(0)
+    parser.add_argument('inputfile', help='Input template file', nargs=1)
     args = parser.parse_args()
     process(args)
 
